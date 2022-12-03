@@ -1,14 +1,18 @@
 import chess
 import AI
-import Move
+# import Move
 
+board = chess.Board()
 while True:
-    if Move.board.turn:
-        print(Move.board)
+    if board.turn:
+        print(board)
+        print(list(board.legal_moves))
         nextMove = input("Please enter a move: ")
         try:
-            Move.board.push_san(nextMove)
+            board.push_san(nextMove)
         except Exception as e:
             print('Bad Move: ', str(e))
     else:
-        break
+        legalMoves = list(board.legal_moves)
+        board.push(legalMoves[0])
+        # nextMove = Move.getNextMove(board, 2)
