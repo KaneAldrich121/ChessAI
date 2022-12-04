@@ -1,19 +1,17 @@
 import chess
 import AI
 from Move import *
+boardPosition = chess.Board()
+AIRunner = AI.ChessAI()
 
-board = chess.Board()
 
 while True:
-    if board.turn:
-        print(board)
-        nextMove = input("Please enter a move: ")
-        try:
-            board.push_san(nextMove)
-        except Exception as e:
-            print('Bad Move: ', str(e))
+    if boardPosition.turn:
+        print(boardPosition)
+        boardPosition, lastMove = AIRunner.initiatePlayer(boardPosition)
     else:
-        board.push(Move().getBestMove(nextMove, board))
+        boardPosition = AIRunner.initiateComputer(boardPosition, lastMove)
+
 
 
 

@@ -1,6 +1,7 @@
 import chess
 
 
+
 class Node:
     def __init__(self, evalHere: int, historyToHere: list[chess.Move], thisMove: chess.Move,
                  children: list['Node']):

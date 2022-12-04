@@ -1,5 +1,6 @@
 import chess
 import MoveTree
+import AI
 
 
 class Move:
@@ -25,36 +26,20 @@ class Move:
         return thisRoot, curLeaves
 
     def calculateMoveTotal(self, thisBoard, move):
-        # pieceVals = {"P": 1, "N": 3, "B": 3, "R": 5, "Q": 8, "K": 10,
-        #              "p": 1, "n": 3, "b": 3, "r": 5, "q": 8, "k": 10}
-        # print("This Board: ", thisBoard)
-        # print("This Move: ", move)
-        # capture = thisBoard.is_capture(move)
-        # gain = 0
-        # if capture:
-        #     moveString = str(move)
-        #     attackedSquare = moveString[2:]
-        #     attackedPiece = thisBoard.piece_at(chess.parse_square(attackedSquare))
-        #     gain = pieceVals[str(attackedPiece)]
-        # if not thisBoard.turn:
-        #     gain = -gain
-        # return gain
         return 0
 
-    def getBestMove(self, lastMove, curBoard):
+    def getBestMove(self, curBoard, lastMove):
         # Check for Checkmate:
         if curBoard.is_checkmate():
             print("You Win! Good game")
             exit()
 
         # Generate Move Object for the Move Called thisMove (this is the last move played)
-        firstSquare = lastMove[:2]
-        secondSquare = lastMove[2:]
-        fromSquare = chess.parse_square(firstSquare)
-        toSquare = chess.parse_square(secondSquare)
-        thisMove = chess.Move(fromSquare, toSquare)
+        curBoard.pop()
+        thisMove = curBoard.parse_san(lastMove)
+        curBoard.push(thisMove)
 
-        # Set Variables Needed
+        # Set Variables Needed DEPTH HAS TO BE EVEN NUMBER
         depth = 2
         leaves = []
 
@@ -76,3 +61,4 @@ class Move:
 
 moveOperator = Move()
 board = chess.Board()
+
