@@ -1,64 +1,71 @@
 import chess
 import MoveTree
+import MoveHelper
+import HistoryFunctions
 import AI
+from random import randint
 
 
 class Move:
-    # Takes Board Position and Depth to Search and Returns
-    def createMoveTree(self, thisRoot, curDepth, curBoard, curLeaves):
-        # Base Case Check:
-        if curDepth == 0:
-            curLeaves.append(thisRoot)
-            return
 
-        # Update History
-        newHistory = thisRoot.historyToHere.copy()
-        newHistory.append(thisRoot.thisMove)
-
-        for move in list(curBoard.legal_moves):
-            # Make a Node for the Child Move
-            node = MoveTree.Node(self.calculateMoveTotal(curBoard, move), newHistory, move, [])
-            # Append the Child Node to Children
-            thisRoot.children.append(node)
-            curBoard.push(move)
-            self.createMoveTree(node, curDepth - 1, curBoard, curLeaves)
-            curBoard.pop()
-        return thisRoot, curLeaves
-
-    def calculateMoveTotal(self, thisBoard, move):
-        return 0
-
-    def getBestMove(self, curBoard, lastMove):
+    def getBestMove(self, curBoard, lastMove):  # Takes Current Board and Last Move
+        AIRunner = AI.ChessAI()
         # Check for Checkmate:
         if curBoard.is_checkmate():
             print("You Win! Good game")
             exit()
+        if lastMove is None:
+            return curBoard.parse_san('e2e4')
 
-        # Generate Move Object for the Move Called thisMove (this is the last move played)
-        curBoard.pop()
-        thisMove = curBoard.parse_san(lastMove)
-        curBoard.push(thisMove)
+        # Generate Move Object for the Move Called lastMoveMove (this is the last move played) and Add to Board
+        if type(lastMove) == str:
+            curBoard.pop()
+            lastMove = curBoard.parse_san(lastMove)
+            curBoard.push(lastMove)
 
-        # Set Variables Needed DEPTH HAS TO BE EVEN NUMBER
+        # Set Variables Needed
         depth = 2
         leaves = []
 
+        # Check For a Known Opening
+        openMove = HistoryFunctions.checkForKnownOpening(lastMove)
+        if openMove is not None:
+            return curBoard.parse_san(openMove)
+
+        firstLevelLegalMoves = set(curBoard.legal_moves)
+
+        # Check for Moves Which will Hang a Piece
+
+        # Check for Undefended Pieces to Attack
+        goodPossibles = MoveHelper.findHangingPieces(curBoard)
+        bestMove = None
+        if len(goodPossibles) is not 0:
+            for move in goodPossibles:
+                firstLevelLegalMoves.remove(move)
+                lowestVal = 100
+                if MoveHelper.findPieceValue(move.from_square, curBoard) < lowestVal:
+                    lowestVal = MoveHelper.findPieceValue(move.from_square, curBoard)
+                    bestMove = move
+        if bestMove is not None:
+            return bestMove
+
+
         # Calculate the Root Node
-        thisRoot = MoveTree.Node(moveOperator.calculateMoveTotal(curBoard, thisMove), [], thisMove, [])
+        thisRoot = MoveTree.Node(0, [], lastMove, [])
 
         # Generate a Move Tree Starting from the Root Node (Board reflects last move played)
-        theseOptions, theseCurLeaves = moveOperator.createMoveTree(thisRoot, depth, curBoard, leaves)
+        endRoot, theseCurLeaves = MoveHelper.createMoveTree(thisRoot, depth, curBoard, leaves)
 
-        # Find Best Move from Leaves
-        bestMove = None
-        bestEval = -9999
-        for leaf in theseCurLeaves:
-            if leaf.evalHere > bestEval:
-                bestEval = leaf.evalHere
-                bestMove = leaf.historyToHere[1]
-        return bestMove
+        # Attempt to Find Best Move by Point Vals
+        thisBestMove = MoveHelper.calculateByPointVals(theseCurLeaves)
+        if thisBestMove is not None:
+            return thisBestMove
 
+        # Find Best Move from Leaves Using MonteCarlo
+        thisBestMove = MoveHelper.calculateByMonteCarlo(theseCurLeaves, curBoard)
+        return thisBestMove
 
-moveOperator = Move()
-board = chess.Board()
-
+    def getRandomMove(self, boardPosition):
+        listOfLegal = list(boardPosition.legal_moves)
+        moveNum = randint(0, len(listOfLegal) - 1)
+        return listOfLegal[moveNum]
