@@ -7,11 +7,10 @@ AIRunner = AI.ChessAI()
 firstTurn = True
 open('MoveHistory.txt', 'w').close()
 
-
-player1 = input('Player 1: Player or Computer? ')
-player2 = input('Player 2: Player or Computer? ')
-# player1 = "Player"
-# player2 = "Computer"
+# player1 = input('Player 1: Player or Computer? ')
+# player2 = input('Player 2: Player or Computer? ')
+player1 = "Player"
+player2 = "Computer"
 while True:
     print('\n', '\n', '\n')
     print(boardPosition)

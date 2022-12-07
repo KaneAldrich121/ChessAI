@@ -24,46 +24,52 @@ class Move:
             curBoard.push(lastMove)
 
         # Set Variables Needed
-        depth = 2
+        depth = 3
         leaves = []
 
+        print("Known Opening Check")
         # Check For a Known Opening
         openMove = HistoryFunctions.checkForKnownOpening(lastMove)
         if openMove is not None:
             return curBoard.parse_san(openMove)
 
-        firstLevelLegalMoves = set(curBoard.legal_moves)
+        firstLevelLegalMoves = list(curBoard.legal_moves)
+        compColor = chess.BLACK
+        oppColor = chess.WHITE
+        if curBoard.turn:
+            compColor = chess.WHITE
+            oppColor = chess.BLACK
 
-        # Check for Moves Which will Hang a Piece
+        print("Removed Hanging Moves")
+        # Check for Moves Which will Hang a Piece and Remove Them from Considered Moves
+        firstLevelLegalMoves = MoveHelper.removeHangMoves(curBoard, firstLevelLegalMoves, compColor, oppColor)
 
+        print("Undefended Piece Check")
         # Check for Undefended Pieces to Attack
-        goodPossibles = MoveHelper.findHangingPieces(curBoard)
-        bestMove = None
-        if len(goodPossibles) is not 0:
-            for move in goodPossibles:
-                firstLevelLegalMoves.remove(move)
-                lowestVal = 100
-                if MoveHelper.findPieceValue(move.from_square, curBoard) < lowestVal:
-                    lowestVal = MoveHelper.findPieceValue(move.from_square, curBoard)
-                    bestMove = move
-        if bestMove is not None:
-            return bestMove
-
+        hangAttack = MoveHelper.findHangingPieces(curBoard, firstLevelLegalMoves)
+        if hangAttack is not None:
+            return hangAttack
 
         # Calculate the Root Node
-        thisRoot = MoveTree.Node(0, [], lastMove, [])
+        thisRoot = MoveTree.Node(0, [], lastMove, [], curBoard)
 
         # Generate a Move Tree Starting from the Root Node (Board reflects last move played)
-        endRoot, theseCurLeaves = MoveHelper.createMoveTree(thisRoot, depth, curBoard, leaves)
+        #theseCurLeaves = MoveHelper.createMoveTree(thisRoot, depth, curBoard, leaves, firstLevelLegalMoves, compColor,
+        #                                          oppColor)
 
-        # Attempt to Find Best Move by Point Vals
-        thisBestMove = MoveHelper.calculateByPointVals(theseCurLeaves)
-        if thisBestMove is not None:
-            return thisBestMove
-
-        # Find Best Move from Leaves Using MonteCarlo
-        thisBestMove = MoveHelper.calculateByMonteCarlo(theseCurLeaves, curBoard)
-        return thisBestMove
+        # for leaf in theseCurLeaves:
+        #     print(leaf)
+        #     exit()
+        # print("Point Value Check")
+        # # Attempt to Find Best Move by Point Vals
+        # thisBestMove = MoveHelper.calculateByPointVals(theseCurLeaves)
+        # if thisBestMove is not None:
+        #     return thisBestMove
+        #
+        # print("MonteCarlo")
+        # # Find Best Move from Leaves Using MonteCarlo
+        # thisBestMove = MoveHelper.calculateByMonteCarlo(theseCurLeaves, curBoard)
+        # return thisBestMove
 
     def getRandomMove(self, boardPosition):
         listOfLegal = list(boardPosition.legal_moves)
