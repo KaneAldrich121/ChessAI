@@ -1,15 +1,14 @@
 import chess
 
 
-
 class Node:
-    def __init__():
-        return None
-
+    def __init__(self, boardPosition, thisMove, ABValue, children, turn):
+        self.boardPosition = boardPosition
+        self.thisMove = thisMove
+        self.ABValue = ABValue
+        self.children = children
+        self.turn = turn
 
     def __str__(self):
-        return f"String Here"
+        return f'Children: {self.children}, ABValue: {self.ABValue}, Turn: {self.turn}, Move: {self.thisMove}'
 
-    def addNode():
-        thisNode = None
-        return thisNode

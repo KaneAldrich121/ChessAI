@@ -44,32 +44,18 @@ class Move:
         # Check for Moves Which will Hang a Piece and Remove Them from Considered Moves
         firstLevelLegalMoves = MoveHelper.removeHangMoves(curBoard, firstLevelLegalMoves, compColor, oppColor)
 
-        print("Undefended Piece Check")
-        # Check for Undefended Pieces to Attack
-        hangAttack = MoveHelper.findHangingPieces(curBoard, firstLevelLegalMoves)
-        if hangAttack is not None:
-            return hangAttack
+        # print("Undefended Piece Check")
+        # # Check for Undefended Pieces to Attack
+        # hangAttack = MoveHelper.findHangingPieces(curBoard, firstLevelLegalMoves)
+        # if hangAttack is not None:
+        #     return hangAttack
 
-        # Calculate the Root Node
-        thisRoot = MoveTree.Node(0, [], lastMove, [], curBoard)
-
-        # Generate a Move Tree Starting from the Root Node (Board reflects last move played)
-        #theseCurLeaves = MoveHelper.createMoveTree(thisRoot, depth, curBoard, leaves, firstLevelLegalMoves, compColor,
-        #                                          oppColor)
-
-        # for leaf in theseCurLeaves:
-        #     print(leaf)
-        #     exit()
-        # print("Point Value Check")
-        # # Attempt to Find Best Move by Point Vals
-        # thisBestMove = MoveHelper.calculateByPointVals(theseCurLeaves)
-        # if thisBestMove is not None:
-        #     return thisBestMove
-        #
-        # print("MonteCarlo")
-        # # Find Best Move from Leaves Using MonteCarlo
-        # thisBestMove = MoveHelper.calculateByMonteCarlo(theseCurLeaves, curBoard)
-        # return thisBestMove
+        # Create Alpha Beta Tree
+        depth = 2
+        # Create Root Node
+        root = MoveTree.Node(curBoard, lastMove, 1, [], curBoard.turn)
+        thisTree = MoveHelper.createABTree(root, depth)
+        print(thisTree)
 
     def getRandomMove(self, boardPosition):
         listOfLegal = list(boardPosition.legal_moves)

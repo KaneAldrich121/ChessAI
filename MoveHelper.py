@@ -4,85 +4,73 @@ import AI
 from random import randint
 
 
+def createABTree(rootNode, depth):
+    movesToCheck = list(rootNode.boardPosition.legal_moves)
+    for move in movesToCheck:
+        # Create New Board Position
+        thisBoard = rootNode.boardPosition.copy()
+        thisBoard.push(move)
+        # Find Alpha or Beta Value
+        newABVal = findAlphaBetaVal(thisBoard, thisBoard.turn)
+        # Create New Node, Recurse Down into NewNode, Add it to Root Children
+        newNode = MoveTree.Node(thisBoard, move, newABVal, [], thisBoard.turn)
+        if depth - 1 > 0:
+            newNode = createABTree(newNode, depth - 1)
+        rootNode.children.append(newNode)
+    return rootNode
 
-def createMoveTree():
-    return None
-
-# NEEDS REWORKING
-def evaluateBoard(boardPosition, consideredMove):
-    pieceVals = {'p': 1, 'n': 3, 'b': 3, "r": 5, "q": 8, "k": 10,
-                 'P': 1, 'N': 3, 'B': 3, "R": 5, "Q": 8, "K": 10}
-    # Finds who will potentially attack back
-    compColor = chess.BLACK
-    oppColor = chess.WHITE
-    oppKing = "K"
-    if boardPosition.turn:
-        compColor = chess.WHITE
-        oppColor = chess.BLACK
-        oppKing = "k"
-    # Is this Move Checkmate?
-    if boardPosition.is_checkmate():
-        return 1000
-    # Does this Move Give a Check? Does it lead to Mate?
-    if boardPosition.is_check() and boardPosition.turn == oppColor:
-        foundMate = lookForCheckmate(boardPosition)
-        if foundMate:
-            return 1000
-
-    # Does this Move Attack a Piece?
-    print(boardPosition.is_capture(consideredMove))
-    if boardPosition.is_capture(consideredMove) and boardPosition.piece_at(consideredMove.to_square) is not None:
-        gain, temp = calculatePointDifference({consideredMove.from_square}, {consideredMove.to_square})
-        return gain
-
-    # Does this move restrict the king? TESTED
-    previousBoard = boardPosition.copy()
-    nextBoard = boardPosition.copy()
-    nextBoard.push(consideredMove)
-    previousBoard.pop()
-    previousKingMoves = list(previousBoard.legal_moves)
-    currentKingMoves = list(nextBoard.legal_moves)
-    for move in previousKingMoves:
-        if previousBoard.piece_at(move.from_square).symbol() != "K":
-            previousKingMoves.remove(move)
-    for move in currentKingMoves:
-        if nextBoard.piece_at(move.from_square).symbol() != oppKing:
-            currentKingMoves.remove(move)
-    if len(currentKingMoves) < len(previousKingMoves):
-        return 3
-
-    # Base Case
-    return 0
+def traverseABTree(rootNode, curBestAlpha, curBestBeta):
+    if rootNode.children != []:
+        for child in rootNode.children:
+            newAlpha, newBeta = traverseABTree(child, -1000, 1000)
+            if rootNode.turn:
+                if newBeta < rootNode.ABValue:
+                    rootNode.ABValue = newBeta
+            else:
+                if newAlpha > rootNode.ABValue:
+                    rootNode.ABValue = newAlpha
+    if rootNode.turn:
+        if rootNode.ABValue < curBestBeta:
+            curBestBeta = rootNode.ABValue
+    else:
+        if rootNode.ABValue > curBestAlpha:
+            curBestAlpha = rootNode.ABValue
+    return curBestAlpha, curBestBeta
 
 
-def lookForCheckmate(boardPosition):
-    testBoard = boardPosition.copy()
-    return False
 
-def analyzePin(boardPosition, consideredMove):
-    # Finds who is being pinned
-    compColor = chess.BLACK
-    oppColor = chess.WHITE
-    if boardPosition.turn:
-        compColor = chess.WHITE
-        oppColor = chess.BLACK
-    testBoard = boardPosition.copy()
-    attackingValue = findPieceValue(consideredMove.to_square, boardPosition)
-    # Need to Find What Piece is Pinned
-    pinnedSquare = 0
-    for attackedSquare in boardPosition.attacks(consideredMove.to_square):
-        if boardPosition.is_pinned(oppColor, attackedSquare) and boardPosition.piece_at(attackedSquare) is not None:
-            pinnedSquare = attackedSquare
-            break
-    attackedValue = findPieceValue(pinnedSquare, boardPosition)
-    if attackedValue > attackingValue:
-        return 10
-    return 5
+
+
+# Input: Board Position and Who's Turn it is
+# Output: Either the Alpha or Beta Value of the given position depending on who's turn it is.
+# Purpose: Finds Either the Alpha or Beta Value Depending on who's Turn it is.
+def findAlphaBetaVal(boardPosition, turnColor):
+    # Calculate Point Difference
+    whiteTotal = findAllPieceTotal(boardPosition, chess.WHITE)
+    blackTotal = findAllPieceTotal(boardPosition, chess.BLACK)
+    difference = abs(whiteTotal - blackTotal)
+
+    #
+
+    # AlphaBeta Function (Features = Difference)
+    Value = 1.5 * difference
+    return Value
+
+# Input: Current Board Position and Color in Question.
+# Output: Sum Total of All Piece Values on the Board for the Given Color.
+# Purpose: Calculates Sum Piece Total
+def findAllPieceTotal(boardPosition, color):
+    total = 0
+    typeToValue = {1: 1, 2: 3, 3: 3, 4: 5, 5: 8, 6: 10}
+    for pieceType in range(1, 7):
+        total += len(boardPosition.pieces(pieceType, color)) * typeToValue[pieceType]
+    return total
+
 
 
 # Input: Set of Attacking Squares of Computer Color, set of attacking squares of Opp Color, Board Position
 # Output: Returns difference in point values of the comp's attacking pieces and opp's attacking pieces. If this is
-#   great than 0, it benefits the comp to attack the square. Also returns the square of the lowest value attacking
+#   greater than 0, it benefits the comp to attack the square. Also returns the square of the lowest value attacking
 #   piece, which is likely the one which should attack first.
 # Purpose: Takes a possible attack move and determines if it benefits the computer to initiate the attack, and if so
 #   with what piece.
@@ -106,9 +94,11 @@ def calculatePointDifference(myAttackerSquareSet, oppAttackerSquareSet, boardPos
         oppTotal += attackingPieceVal
     return myTotal - oppTotal, lowestSquare
 
+
 # Input: Board Position
 # Output: List of moves which attack a hanging piece.
 # Purpose: Current thought is that attacking a piece which is hanging must be at worst a decent move.
+# CHECK: How does this algorithm behave when it has multiple hanging moves to evaluate
 def findHangingPieces(curBoard, firstLevelLegalMoves):
     goodPossibles = []
     oppColor = chess.WHITE
@@ -137,6 +127,7 @@ def findHangingPieces(curBoard, firstLevelLegalMoves):
         return bestMove
     return None
 
+
 # Input: Set of all currently considered first level legal moves.
 # Output: Set of legal moves which are either attacks or do not hang a piece.
 # Purpose: Remove moves which obviously lose material so they are not considered in the move tree.
@@ -145,9 +136,10 @@ def removeHangMoves(curBoard, consideredMoves, compColor, oppColor):
         compAttackSet = curBoard.attackers(compColor, move.to_square)
         oppAttackSet = curBoard.attackers(oppColor, move.to_square)
         if not curBoard.is_capture(move):
-            if len(oppAttackSet) > len(compAttackSet)-1:
+            if len(oppAttackSet) > len(compAttackSet) - 1:
                 consideredMoves.remove(move)
     return consideredMoves
+
 
 # Input: Leaves generated by the Move Tree
 # Output: Best move according to the capture point values calculated in the move tree.
@@ -189,7 +181,7 @@ def calculateByMonteCarlo(leaves, curBoard):
             maxResultsLength = len(results)
             thisBestMove = leaf.historyToHere[1]
     if thisBestMove == None:
-        rand = randint(0, len(leaves)-1)
+        rand = randint(0, len(leaves) - 1)
         thisBestMove = leaves[rand].historyToHere[1]
     return thisBestMove
 
@@ -222,9 +214,20 @@ def performAllChecks(curBoard, move):
 
 
 if __name__ == '__main__':
-    board = chess.Board("1b5k/8/8/8/8/8/R1Q5/7K")
-    board.turn = chess.BLACK
-    board.push_san("h8g8")
-    board.push_san("c2b1")
-    board.push_san("g8h8")
-    print(evaluateBoard(board, board.parse_san("b1b7")))
+    board = chess.Board("r3k2q/4P3/8/8/8/8/4PP1P/4KPQP")
+    board.turn = False
+    root = MoveTree.Node(board, board.parse_san('h8g8'), findAlphaBetaVal(board, False), [], board.turn)
+    root.boardPosition.push_san('h8g8')
+    root.turn = True
+    thisRoot = createABTree(root, 2)
+    for child in thisRoot.children[0].children:
+        print(child)
+    traverseABTree(thisRoot, -1000, 1000)
+    print(thisRoot.children[0])
+
+
+
+
+
+
+
