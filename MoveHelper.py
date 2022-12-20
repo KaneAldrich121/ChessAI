@@ -19,26 +19,21 @@ def createABTree(rootNode, depth):
         rootNode.children.append(newNode)
     return rootNode
 
-def traverseABTree(rootNode, curBestAlpha, curBestBeta):
-    if rootNode.children != []:
-        for child in rootNode.children:
-            newAlpha, newBeta = traverseABTree(child, -1000, 1000)
-            if rootNode.turn:
-                if newBeta < rootNode.ABValue:
-                    rootNode.ABValue = newBeta
-            else:
-                if newAlpha > rootNode.ABValue:
-                    rootNode.ABValue = newAlpha
-    if rootNode.turn:
-        if rootNode.ABValue < curBestBeta:
-            curBestBeta = rootNode.ABValue
+
+def traverseABTree(rootNode, childValues):
+    if not rootNode.children:  # If List is Empty (This is a leaf)
+        childValues.append(rootNode.ABValue)
+        return
     else:
-        if rootNode.ABValue > curBestAlpha:
-            curBestAlpha = rootNode.ABValue
-    return curBestAlpha, curBestBeta
-
-
-
+        for child in rootNode.children:
+            traverseABTree(child, childValues)
+        if rootNode.turn:  # Black's Turn (Minimizing)
+            rootNode.traverseValue = max(childValues)
+            childValues = []
+        else:  # White's Turn (Maximizing)
+            rootNode.traverseValue = min(childValues)
+            childValues = []
+    return
 
 
 # Input: Board Position and Who's Turn it is
@@ -50,11 +45,19 @@ def findAlphaBetaVal(boardPosition, turnColor):
     blackTotal = findAllPieceTotal(boardPosition, chess.BLACK)
     difference = abs(whiteTotal - blackTotal)
 
-    #
+    # Find How Many Pieces this Move Attacks
+    lastMove = boardPosition.pop()
+    boardPosition.push(lastMove)
+    numberAttackedSquares = boardPosition.attacks(lastMove.to_square)
+    numberAttacked = 0
+    for square in numberAttackedSquares:
+        if boardPosition.piece_at(square) and boardPosition.color_at(square) != boardPosition.turn:
+            numberAttacked += 1
 
     # AlphaBeta Function (Features = Difference)
-    Value = 1.5 * difference
+    Value = 1.5 * difference + numberAttacked * 1
     return Value
+
 
 # Input: Current Board Position and Color in Question.
 # Output: Sum Total of All Piece Values on the Board for the Given Color.
@@ -65,7 +68,6 @@ def findAllPieceTotal(boardPosition, color):
     for pieceType in range(1, 7):
         total += len(boardPosition.pieces(pieceType, color)) * typeToValue[pieceType]
     return total
-
 
 
 # Input: Set of Attacking Squares of Computer Color, set of attacking squares of Opp Color, Board Position
@@ -213,21 +215,29 @@ def performAllChecks(curBoard, move):
     return possibleMoves
 
 
+def findBestMoveFromABTree(treeRoot):
+    if treeRoot.turn:
+        treeBestEval = -1000
+        for treeChild in treeRoot.children:
+            if treeChild.ABValue > treeBestEval:
+                treeBestEval = treeChild.ABValue
+                treeBestMove = treeChild.thisMove
+    else:
+        treeBestEval = 1000
+        for treeChild in treeRoot.children:
+            if treeChild.traverseValue < treeBestEval:
+                treeBestEval = treeChild.ABValue
+                treeBestMove = treeChild.thisMove
+    return treeBestMove
+
+
 if __name__ == '__main__':
-    board = chess.Board("r3k2q/4P3/8/8/8/8/4PP1P/4KPQP")
+    board = chess.Board("r6q/4kP2/8/8/8/8/4PP1P/4KPQP")
     board.turn = False
     root = MoveTree.Node(board, board.parse_san('h8g8'), findAlphaBetaVal(board, False), [], board.turn)
     root.boardPosition.push_san('h8g8')
     root.turn = True
     thisRoot = createABTree(root, 2)
-    for child in thisRoot.children[0].children:
-        print(child)
-    traverseABTree(thisRoot, -1000, 1000)
-    print(thisRoot.children[0])
-
-
-
-
-
-
-
+    traverseABTree(thisRoot, [])
+    bestMove = findBestMoveFromABTree(thisRoot)
+    print(bestMove)

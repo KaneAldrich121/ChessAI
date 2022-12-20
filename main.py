@@ -2,7 +2,7 @@ import chess
 import AI
 
 import Move
-boardPosition = chess.Board("r3k1q1/4P3/8/8/8/8/4PP1P/4KPQP")
+boardPosition = chess.Board()
 AIRunner = AI.ChessAI()
 firstTurn = True
 open('MoveHistory.txt', 'w').close()

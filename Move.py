@@ -51,11 +51,13 @@ class Move:
         #     return hangAttack
 
         # Create Alpha Beta Tree
-        depth = 2
+        depth = 4
         # Create Root Node
-        root = MoveTree.Node(curBoard, lastMove, 1, [], curBoard.turn)
+        root = MoveTree.Node(curBoard, lastMove, 0, [], curBoard.turn)
         thisTree = MoveHelper.createABTree(root, depth)
-        print(thisTree)
+        MoveHelper.traverseABTree(thisTree, [])
+        bestMove = MoveHelper.findBestMoveFromABTree(thisTree)
+        return bestMove
 
     def getRandomMove(self, boardPosition):
         listOfLegal = list(boardPosition.legal_moves)
