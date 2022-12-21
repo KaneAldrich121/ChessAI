@@ -47,8 +47,9 @@ class Move:
         if hangAttack is not None:
             return hangAttack
 
+        print("Build Tree")
         # Create Alpha Beta Tree
-        depth = 2
+        depth = 1
         # Create Root Node
         root = MoveTree.Node(curBoard, lastMove, 0, [], curBoard.turn)
         thisTree = MoveHelper.createABTree(root, depth)

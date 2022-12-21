@@ -51,11 +51,11 @@ def findAlphaBetaVal(boardPosition, turnColor):
     numberAttackedSquares = boardPosition.attacks(lastMove.to_square)
     numberAttacked = 0
     for square in numberAttackedSquares:
-        if boardPosition.piece_at(square) and boardPosition.color_at(square) != boardPosition.turn:
+        if boardPosition.piece_at(square) and boardPosition.color_at(square) == boardPosition.turn:
             numberAttacked += 1
 
     # AlphaBeta Function (Features = Difference)
-    Value = 1.5 * difference
+    Value = 1.5 * difference + 1 * numberAttacked
     return Value
 
 
@@ -219,20 +219,15 @@ def performAllChecks(curBoard, move):
 # Purpose: If Root is Black then next move will be white and we maximize, if root is white
 # #   then next move is black and we minimize. Values at ABValue are created from the children of the node.
 def findBestMoveFromABTree(treeRoot):
-    print(treeRoot)
+    print("ROOT: ", treeRoot)
+    for child in treeRoot.children:
+        print(child)
     treeBestMove = None
-    if treeRoot.turn:
-        treeBestEval = -1000  # Get minimum value of child nodes
-        for treeChild in treeRoot.children:
-            if treeChild.ABValue > treeBestEval:
-                treeBestEval = treeChild.ABValue
-                treeBestMove = treeChild.thisMove
-    else:
-        treeBestEval = 1000  # Get maximum value of child nodes
-        for treeChild in treeRoot.children:
-            if treeChild.ABValue < treeBestEval:
-                treeBestEval = treeChild.ABValue
-                treeBestMove = treeChild.thisMove
+    treeBestEval = -1000  # Get minimum value of child nodes
+    for treeChild in treeRoot.children:
+        if treeChild.ABValue > treeBestEval:
+            treeBestEval = treeChild.ABValue
+            treeBestMove = treeChild.thisMove
     return treeBestMove
 
 
