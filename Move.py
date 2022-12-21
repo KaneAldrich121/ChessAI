@@ -27,7 +27,6 @@ class Move:
         depth = 3
         leaves = []
 
-        print("Known Opening Check")
         # Check For a Known Opening
         openMove = HistoryFunctions.checkForKnownOpening(lastMove)
         if openMove is not None:
@@ -40,18 +39,16 @@ class Move:
             compColor = chess.WHITE
             oppColor = chess.BLACK
 
-        print("Removed Hanging Moves")
         # Check for Moves Which will Hang a Piece and Remove Them from Considered Moves
         firstLevelLegalMoves = MoveHelper.removeHangMoves(curBoard, firstLevelLegalMoves, compColor, oppColor)
 
-        # print("Undefended Piece Check")
-        # # Check for Undefended Pieces to Attack
-        # hangAttack = MoveHelper.findHangingPieces(curBoard, firstLevelLegalMoves)
-        # if hangAttack is not None:
-        #     return hangAttack
+        # Check for Undefended Pieces to Attack
+        hangAttack = MoveHelper.findHangingPieces(curBoard, firstLevelLegalMoves)
+        if hangAttack is not None:
+            return hangAttack
 
         # Create Alpha Beta Tree
-        depth = 4
+        depth = 2
         # Create Root Node
         root = MoveTree.Node(curBoard, lastMove, 0, [], curBoard.turn)
         thisTree = MoveHelper.createABTree(root, depth)

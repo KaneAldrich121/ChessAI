@@ -10,5 +10,5 @@ class Node:
         self.turn = turn
 
     def __str__(self):
-        return f'Children: {self.children}, ABValue: {self.ABValue}, Turn: {self.turn}, Move: {self.thisMove}'
+        return f'Children: {self.children}, ABValue: {self.ABValue}, Turn: {self.turn}, Last Move: {self.thisMove}'
 

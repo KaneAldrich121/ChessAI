@@ -27,11 +27,11 @@ def traverseABTree(rootNode, childValues):
     else:
         for child in rootNode.children:
             traverseABTree(child, childValues)
-        if rootNode.turn:  # Black's Turn (Minimizing)
-            rootNode.traverseValue = max(childValues)
+        if rootNode.turn:  # White's Turn (Maximizing)
+            rootNode.ABValue = max(childValues)
             childValues = []
-        else:  # White's Turn (Maximizing)
-            rootNode.traverseValue = min(childValues)
+        else:  # White's Turn (Minimizing)
+            rootNode.ABValue = min(childValues)
             childValues = []
     return
 
@@ -55,7 +55,7 @@ def findAlphaBetaVal(boardPosition, turnColor):
             numberAttacked += 1
 
     # AlphaBeta Function (Features = Difference)
-    Value = 1.5 * difference + numberAttacked * 1
+    Value = 1.5 * difference
     return Value
 
 
@@ -214,30 +214,35 @@ def performAllChecks(curBoard, move):
     possibleMoves = removeHangMoves(curBoard, possibleMoves, compColor, oppColor)
     return possibleMoves
 
-
+# Input: Root of the ABTree
+# Output: Best Move Found by the ABTree.
+# Purpose: If Root is Black then next move will be white and we maximize, if root is white
+# #   then next move is black and we minimize. Values at ABValue are created from the children of the node.
 def findBestMoveFromABTree(treeRoot):
+    print(treeRoot)
+    treeBestMove = None
     if treeRoot.turn:
-        treeBestEval = -1000
+        treeBestEval = -1000  # Get minimum value of child nodes
         for treeChild in treeRoot.children:
             if treeChild.ABValue > treeBestEval:
                 treeBestEval = treeChild.ABValue
                 treeBestMove = treeChild.thisMove
     else:
-        treeBestEval = 1000
+        treeBestEval = 1000  # Get maximum value of child nodes
         for treeChild in treeRoot.children:
-            if treeChild.traverseValue < treeBestEval:
+            if treeChild.ABValue < treeBestEval:
                 treeBestEval = treeChild.ABValue
                 treeBestMove = treeChild.thisMove
     return treeBestMove
 
 
 if __name__ == '__main__':
-    board = chess.Board("r6q/4kP2/8/8/8/8/4PP1P/4KPQP")
+    board = chess.Board("r2k3q/3P4/8/8/8/8/4P3/4KQP1")
     board.turn = False
-    root = MoveTree.Node(board, board.parse_san('h8g8'), findAlphaBetaVal(board, False), [], board.turn)
-    root.boardPosition.push_san('h8g8')
-    root.turn = True
-    thisRoot = createABTree(root, 2)
+    thisMove = board.parse_san('h8f8')
+    board.push(thisMove)
+    root = MoveTree.Node(board, thisMove, findAlphaBetaVal(board, False), [], not board.turn)
+    thisRoot = createABTree(root, 3)
     traverseABTree(thisRoot, [])
     bestMove = findBestMoveFromABTree(thisRoot)
     print(bestMove)
