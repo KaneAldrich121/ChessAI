@@ -40,6 +40,11 @@ def traverseABTree(rootNode, childValues):
 # Output: Either the Alpha or Beta Value of the given position depending on who's turn it is.
 # Purpose: Finds Either the Alpha or Beta Value Depending on who's Turn it is.
 def findAlphaBetaVal(boardPosition, turnColor):
+    # Is Checkmate?
+    mate = 0
+    if boardPosition.is_checkmate():
+        mate = 1000
+
     # Calculate Point Difference
     whiteTotal = findAllPieceTotal(boardPosition, chess.WHITE)
     blackTotal = findAllPieceTotal(boardPosition, chess.BLACK)
@@ -54,8 +59,8 @@ def findAlphaBetaVal(boardPosition, turnColor):
         if boardPosition.piece_at(square) and boardPosition.color_at(square) == boardPosition.turn:
             numberAttacked += 1
 
-    # AlphaBeta Function (Features = Difference)
-    Value = 1.5 * difference + 1 * numberAttacked
+    # AlphaBeta Function (Features = Difference, Pieces Attacked, Mate)
+    Value = 1.5 * difference + 1 * numberAttacked + mate
     return Value
 
 

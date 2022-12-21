@@ -49,7 +49,7 @@ class Move:
 
         print("Build Tree")
         # Create Alpha Beta Tree
-        depth = 1
+        depth = 2
         # Create Root Node
         root = MoveTree.Node(curBoard, lastMove, 0, [], curBoard.turn)
         thisTree = MoveHelper.createABTree(root, depth)
