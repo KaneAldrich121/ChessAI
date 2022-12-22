@@ -18,6 +18,7 @@ class ChessAI:
     def initiateComputer(self, boardPosition, lastMove):
         moveRunner = Move.Move()
         bestMove = moveRunner.getBestMove(boardPosition, lastMove)
+        print("Computer Move: ", bestMove)
         boardPosition.push(bestMove)
         HistoryFunctions.writeMoveHistory(bestMove)
         return boardPosition, bestMove

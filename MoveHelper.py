@@ -22,18 +22,26 @@ def createABTree(rootNode, depth):
 
 
 def traverseABTree(rootNode, childValues):
-    if not rootNode.children:  # If List is Empty (This is a leaf)
-        childValues.append(rootNode.ABValue)
+    if not rootNode.children:  # If Child List is Empty (This is a leaf)
+        if len(childValues) == 0:
+            childValues.append(rootNode.ABValue)
+        else:
+            if board.turn and rootNode.ABValue < childValues[0]:
+                childValues[0] = rootNode.ABValue
+            elif not board.turn and rootNode.ABValue > childValues[0]:
+                childValues[0] = rootNode.ABValue
         return
     else:
-        for child in rootNode.children:
-            traverseABTree(child, childValues)
-        if rootNode.turn:  # White's Turn (Maximizing)
-            rootNode.ABValue = max(childValues)
-            childValues = []
-        else:  # White's Turn (Minimizing)
-            rootNode.ABValue = min(childValues)
-            childValues = []
+        for thisChild in rootNode.children:
+            if len(childValues) != 0:
+                if board.turn and rootNode.ABValue < childValues[0]:
+                    childValues[0] = rootNode.ABValue
+                elif not board.turn and rootNode.ABValue > childValues[0]:
+                    childValues[0] = rootNode.ABValue
+            traverseABTree(thisChild, childValues)
+
+        if len(childValues) != 0:
+            rootNode.ABValue = childValues[0]
     return
 
 
@@ -141,7 +149,6 @@ def findHangingPieces(curBoard, firstLevelLegalMoves):
 # Purpose: Remove moves which obviously lose material so they are not considered in the move tree.
 def removeHangMoves(curBoard, consideredMoves, compColor, oppColor):
     goodMoves = []
-    print("STARTING BOARD: \n", curBoard)
     for move in consideredMoves:
         if not curBoard.is_capture(move):
             testBoard = curBoard.copy()
@@ -151,16 +158,7 @@ def removeHangMoves(curBoard, consideredMoves, compColor, oppColor):
             attackers = len(testBoard.attackers(oppColor, move.to_square))
             attPositions = testBoard.attackers(oppColor, move.to_square)
             if defenders >= attackers:
-                print("GOOD MOVE: ", move, " Defender Count: ", defenders, " Attacker Count: ", attackers)
-                print("CONSIDERED BOARD HERE: \n", testBoard)
-                print("DEFENDERS: \n", defPositions)
-                print("ATTACKERS: \n", attPositions)
                 goodMoves.append(move)
-            else:
-                print("REMOVED: ", move, " Defender Count: ", defenders, " Attacker Count: ", attackers)
-                print("CONSIDERED BOARD HERE: \n", testBoard)
-                print("DEFENDERS: \n", defPositions)
-                print("ATTACKERS: \n", attPositions)
     return goodMoves
 
 
@@ -241,13 +239,162 @@ def performAllChecks(curBoard, move):
 # #   then next move is black and we minimize. Values at ABValue are created from the children of the node.
 def findBestMoveFromABTree(treeRoot):
     treeBestMove = None
-    treeBestEval = -1000  # Get minimum value of child nodes
+    treeBestEval = 1000  # Get minimum value of child nodes
     for treeChild in treeRoot.children:
-        if treeChild.ABValue > treeBestEval:
+        if treeChild.ABValue < treeBestEval:
             treeBestEval = treeChild.ABValue
             treeBestMove = treeChild.thisMove
     return treeBestMove
 
 
 if __name__ == '__main__':
-    pass
+    # Create Toy Tree
+    board = chess.Board("r1b1kbnr/pppp1ppp/8/8/2BpP2q/3P4/PPP2PPP/RNBQK2R w KQkq")
+    # Root Node
+    lastMove = board.parse_san('e1g1')
+    board.push(lastMove)
+    rootNode = MoveTree.Node(board, lastMove, 0, [], board.turn)
+    # Bad Child Depth 1
+    badMove = board.parse_san('h4h6')
+    board.push(badMove)
+    badChild = MoveTree.Node(board, badMove, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children.append(badChild)
+    board.pop()
+    # Good Child Depth 1
+    goodMove = board.parse_san('h4f6')
+    board.push(goodMove)
+    goodChild = MoveTree.Node(board, goodMove, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children.append(goodChild)
+    board.pop()
+    # BAD CHILD CHILDREN
+    board.push(badMove)
+    # CHILD WHICH TAKES QUEEN
+    goodResponse = board.parse_san('c1h6')
+    board.push(goodResponse)
+    level2BadGood = MoveTree.Node(board, goodResponse, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[0].children.append(level2BadGood)
+    board.pop()
+    # CHILD WHICH MISSES CAPTURE
+    badResponse = board.parse_san('c1e3')
+    board.push(badResponse)
+    level2BadBad = MoveTree.Node(board, badResponse, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[0].children.append(level2BadBad)
+    board.pop()
+    board.pop()
+    # GOOD CHILD CHILDREN:
+    board.push(goodMove)
+    # CHILD WHICH CONTINUES DEVELOPMENT
+    developMove = board.parse_san('c1e3')
+    board.push(developMove)
+    level2GoodGood = MoveTree.Node(board, developMove, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[1].children.append(level2GoodGood)
+    board.pop()
+    # CHILD WHICH BLUNDERS
+    blunderMove = board.parse_san('h2h4')
+    board.push(blunderMove)
+    level2GoodBad = MoveTree.Node(board, blunderMove, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[1].children.append(level2GoodBad)
+    board.pop()
+    board.pop()
+    # Board is at Start Position, add children for all children's children
+    # Add two children to Bad Move -> Good Response
+    # Child that takes bishop
+    board.push(badMove)
+    board.push(goodResponse)
+    takeBishop = board.parse_san('g7h6')
+    board.push(takeBishop)
+    level3BadGoodGood = MoveTree.Node(board, takeBishop, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[0].children[0].children.append(level3BadGoodGood)
+    board.pop()
+    # Child that does not take bishop
+    leaveBishop = board.parse_san('g8f6')
+    board.push(leaveBishop)
+    level3BadGoodBad = MoveTree.Node(board, leaveBishop, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[0].children[0].children.append(level3BadGoodBad)
+    board.pop()
+    board.pop()
+    # Add two children to Bad Move -> Bad Response
+    # Black takes white bishop
+    board.push(badResponse)
+    takeWhiteBishop = board.parse_san('d4e3')
+    board.push(takeWhiteBishop)
+    level3BadBadGood = MoveTree.Node(board, takeWhiteBishop, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[0].children[1].children.append(level3BadBadGood)
+    board.pop()
+    # Black doesn't take white bishop
+    developBlackBishop = board.parse_san('f8b4')
+    board.push(developBlackBishop)
+    level3BadBadBad = MoveTree.Node(board, developBlackBishop, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[0].children[1].children.append(level3BadBadBad)
+    board.pop()
+    board.pop()
+    board.pop()
+    # Add two children to Good Move -> Develop Move
+    board.push(goodMove)
+    board.push(developMove)
+    # Black Takes the Bishop
+    blackAttack = board.parse_san('d4e3')
+    board.push(blackAttack)
+    level3GoodGoodBad = MoveTree.Node(board, blackAttack, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[1].children[0].children.append(level3GoodGoodBad)
+    board.pop()
+    # Black Leaves the Bishop
+    blackPass = board.parse_san('f8c5')
+    board.push(blackPass)
+    level3GoodGoodGood = MoveTree.Node(board, blackPass, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[1].children[0].children.append(level3GoodGoodGood)
+    board.pop()
+    board.pop()
+    # Add two children to Good Move -> Blunder
+    board.push(blunderMove)
+    #Black takes pawn
+    blackTakes = board.parse_san('f6h4')
+    board.push(blackTakes)
+    level3GoodBadBad = MoveTree.Node(board, blackTakes, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[1].children[1].children.append(level3GoodBadBad)
+    board.pop()
+    # Black leaves pawn
+    blackLeaves = board.parse_san('h7h5')
+    board.push(blackLeaves)
+    level3GoodBadGood = MoveTree.Node(board, blackLeaves, findAlphaBetaVal(board, board.turn), [], board.turn)
+    rootNode.children[1].children[1].children.append(level3GoodBadGood)
+
+    print("ROOT: ", rootNode)
+    for child in rootNode.children:
+        print("FIRST LEVEL CHILD: ", child)
+    for child in rootNode.children[0].children:
+        print("SECOND LEVEL BAD NODE CHILD: ", child)
+    for child in rootNode.children[1].children:
+        print("SECOND LEVEL GOOD NODE CHILD: ", child)
+    for child in rootNode.children[0].children[0].children:
+        print("THIRD LEVEL: ", child)
+    for child in rootNode.children[1].children[0].children:
+        print("THIRD LEVEL: ", child)
+    for child in rootNode.children[0].children[1].children:
+        print("THIRD LEVEL: ", child)
+    for child in rootNode.children[1].children[1].children:
+        print("THIRD LEVEL: ", child)
+
+    print("\n \n \n \n")
+    traverseABTree(rootNode, [])
+
+    print("ROOT: ", rootNode)
+    for child in rootNode.children:
+        print("FIRST LEVEL CHILD: ", child)
+    for child in rootNode.children[0].children:
+        print("SECOND LEVEL BAD NODE CHILD: ", child)
+    for child in rootNode.children[1].children:
+        print("SECOND LEVEL GOOD NODE CHILD: ", child)
+    for child in rootNode.children[0].children[0].children:
+        print("THIRD LEVEL: ", child)
+    for child in rootNode.children[1].children[0].children:
+        print("THIRD LEVEL: ", child)
+    for child in rootNode.children[0].children[1].children:
+        print("THIRD LEVEL: ", child)
+    for child in rootNode.children[1].children[1].children:
+        print("THIRD LEVEL: ", child)
+
+
+    print(findBestMoveFromABTree(rootNode))
+
+
