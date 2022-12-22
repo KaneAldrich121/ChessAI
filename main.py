@@ -12,10 +12,10 @@ open('MoveHistory.txt', 'w').close()
 player1 = "Player"
 player2 = "Computer"
 while True:
-    print('\n', '\n', '\n')
-    print(boardPosition)
     if boardPosition.turn:
         if player1 == "Player":
+            print('\n', '\n', '\n')
+            print(boardPosition)
             # Human White
             boardPosition, lastMove = AIRunner.initiatePlayer(boardPosition)
         else:
@@ -27,6 +27,8 @@ while True:
             print('---------------------------------------------------------------------------------------')
     else:
         if player2 == "Player":
+            print('\n', '\n', '\n')
+            print(boardPosition)
             # Human Black
             boardPosition, lastMove = AIRunner.initiatePlayer(boardPosition)
         else:

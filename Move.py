@@ -39,17 +39,13 @@ class Move:
             compColor = chess.WHITE
             oppColor = chess.BLACK
 
-        # Check for Moves Which will Hang a Piece and Remove Them from Considered Moves
-        firstLevelLegalMoves = MoveHelper.removeHangMoves(curBoard, firstLevelLegalMoves, compColor, oppColor)
-
         # Check for Undefended Pieces to Attack
         hangAttack = MoveHelper.findHangingPieces(curBoard, firstLevelLegalMoves)
         if hangAttack is not None:
             return hangAttack
 
-        print("Build Tree")
         # Create Alpha Beta Tree
-        depth = 2
+        depth = 1
         # Create Root Node
         root = MoveTree.Node(curBoard, lastMove, 0, [], curBoard.turn)
         thisTree = MoveHelper.createABTree(root, depth)
