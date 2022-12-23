@@ -11,6 +11,7 @@ open('MoveHistory.txt', 'w').close()
 # player2 = input('Player 2: Player or Computer? ')
 player1 = "Player"
 player2 = "Computer"
+previousTree = None
 while True:
     if boardPosition.turn:
         if player1 == "Player":

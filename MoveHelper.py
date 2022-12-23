@@ -20,6 +20,16 @@ def createABTree(rootNode, depth):
         rootNode.children.append(newNode)
     return rootNode
 
+def expandABTree(rootNode, depth):
+    for child in rootNode.children:
+        if child.changed:  # Not a leaf in old tree
+            child.changed = False
+        else:  # Leaf in old tree
+            child = createABTree(child, depth)
+    return rootNode
+
+
+
 
 def traverseABTree(rootNode, childValues):
     if not rootNode.children:  # If this node is a leaf (no children)
@@ -159,6 +169,8 @@ def removeHangMoves(curBoard, consideredMoves, compColor, oppColor):
             attPositions = testBoard.attackers(oppColor, move.to_square)
             if defenders >= attackers:
                 goodMoves.append(move)
+        else:
+            goodMoves.append(move)
     return goodMoves
 
 
@@ -250,14 +262,14 @@ def findBestMoveFromABTree(treeRoot):
     treeBestMove = None
     leastDepth = 100
     if treeBestEval > 500 or treeBestEval < -500:
-        print("IN MATE TREE")
         for possibleChild in treeBestMoves:
             thisDepth = findTreeDepth(possibleChild)
             if thisDepth < leastDepth:
                 leastDepth = thisDepth
-                treeBestMove = possibleChild.thisMove
-        return treeBestMove
+                treeBestMove = possibleChild
+        return treeBestMove.thisMove
     randomMove = randint(0, len(treeBestMoves)-1)
+    print("RANDOM: ", treeBestMoves[randomMove].thisMove)
     return treeBestMoves[randomMove].thisMove
 
 def findTreeDepth(thisTree):
@@ -413,8 +425,6 @@ if __name__ == '__main__':
         print("THIRD LEVEL: ", child)
     for child in rootNode.children[1].children[1].children:
         print("THIRD LEVEL: ", child)
-
-
     print(findBestMoveFromABTree(rootNode))
-
+    pass
 

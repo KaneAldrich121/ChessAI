@@ -11,5 +11,6 @@ class Node:
         self.changed = changed
 
     def __str__(self):
-        return f'Children: {self.children}, ABValue: {self.ABValue}, Turn: {self.turn}, Last Move: {self.thisMove}'
+        return f'Children: {self.children}, ABValue: {self.ABValue}, Turn: {self.turn}, Last Move: {self.thisMove}, ' \
+               f'Changed: {self.changed}'
 
