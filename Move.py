@@ -25,7 +25,6 @@ class Move:
 
         # Set Variables Needed
         depth = 3
-        leaves = []
 
         # Check For a Known Opening
         openMove = HistoryFunctions.checkForKnownOpening(lastMove)
@@ -45,9 +44,9 @@ class Move:
             return hangAttack
 
         # Create Alpha Beta Tree
-        depth = 2
+        depth = 3
         # Create Root Node
-        root = MoveTree.Node(curBoard, lastMove, 0, [], curBoard.turn)
+        root = MoveTree.Node(curBoard, lastMove, 0, [], curBoard.turn, False)
         thisTree = MoveHelper.createABTree(root, depth)
         MoveHelper.traverseABTree(thisTree, [])
         bestMove = MoveHelper.findBestMoveFromABTree(thisTree)
