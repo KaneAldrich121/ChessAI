@@ -15,13 +15,17 @@ class ChessAI:
         return boardPosition, nextMove
 
 
-    def initiateComputer(self, boardPosition, lastMove):
+    def initiateComputer(self, boardPosition, lastMove, previousTree):
         moveRunner = Move.Move()
-        bestMove = moveRunner.getBestMove(boardPosition, lastMove)
+        bestMove, previousTree = moveRunner.getBestMove(boardPosition, lastMove, previousTree)
         print("Computer Move: ", bestMove)
         boardPosition.push(bestMove)
         HistoryFunctions.writeMoveHistory(bestMove)
-        return boardPosition, bestMove
+        if boardPosition.is_checkmate():
+            print("Checkmate! You lose!")
+        if boardPosition.is_stalemate():
+            print("Stalemate! It's a Draw.")
+        return boardPosition, bestMove, previousTree
 
     def MonteCarlo(self, boardPosition):
         result = self.initiateRandomComputer(boardPosition)

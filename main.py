@@ -2,7 +2,7 @@ import chess
 import AI
 
 import Move
-boardPosition = chess.Board()
+boardPosition = chess.Board('r1b1k3/p2p1rR1/n2Qpp2/1pp3p1/3PP3/P1P2P2/3q1NPB/4RK2')
 AIRunner = AI.ChessAI()
 firstTurn = True
 open('MoveHistory.txt', 'w').close()
@@ -12,11 +12,16 @@ open('MoveHistory.txt', 'w').close()
 player1 = "Player"
 player2 = "Computer"
 previousTree = None
+lastMove = None
 while True:
     if boardPosition.turn:
         if player1 == "Player":
             print('\n', '\n', '\n')
+            if lastMove is not None:
+                print(f"Computer Move: {lastMove}")
             print(boardPosition)
+            if boardPosition.is_checkmate():
+                print("Checkmate! You lose!")
             # Human White
             boardPosition, lastMove = AIRunner.initiatePlayer(boardPosition)
         else:
@@ -34,7 +39,7 @@ while True:
             boardPosition, lastMove = AIRunner.initiatePlayer(boardPosition)
         else:
             # Computer Black
-            boardPosition, lastMove = AIRunner.initiateComputer(boardPosition, lastMove)
+            boardPosition, lastMove, previousTree = AIRunner.initiateComputer(boardPosition, lastMove, previousTree)
 
 
 
