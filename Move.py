@@ -65,17 +65,25 @@ class Move:
         # If previous tree is available, move root to the node which corresponds with the user's move, otherwise create
         # new node.
         if previousTree is not None:
+            root = None
             for child in previousTree.children:
                 if child.thisMove == lastMove:
                     root = child
                     startingEval = child.ABValue
                     children = child.children
                     break
-            tic = time.perf_counter()
-            MoveHelper.expandABTree(root, expandDepth)
-            toc = time.perf_counter()
-            print(f"Time for Expand Tree: {toc - tic:0.4f}")
-            print("EXPANDED TREE DEPTH: ", MoveHelper.findTreeDepthMax(root))
+            if root is None:
+                root = MoveTree.Node(curBoard, lastMove, startingEval, children, curBoard.turn, False)
+                tic = time.perf_counter()
+                root = MoveHelper.createABTree(root, createDepth)
+                toc = time.perf_counter()
+                print(f"Time for Creating New Tree: {toc - tic:0.4f}")
+            else:
+                tic = time.perf_counter()
+                MoveHelper.expandABTree(root, expandDepth)
+                toc = time.perf_counter()
+                print(f"Time for Expand Tree: {toc - tic:0.4f}")
+                print("EXPANDED TREE DEPTH: ", MoveHelper.findTreeDepthMax(root))
         else:
             root = MoveTree.Node(curBoard, lastMove, startingEval, children, curBoard.turn, False)
             tic = time.perf_counter()

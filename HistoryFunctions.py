@@ -15,6 +15,7 @@ def checkForKnownOpening(lastMove):
     possibles = []
     for opening in knownOpenings:
         if thisMoveHistory == opening[:len(thisMoveHistory)] and thisMoveHistory != opening[:-1]:
+            print("Found Match")
             possibles.append(opening)
     if len(possibles) != 0:
         whichPossible = randint(0, len(possibles) - 1)

@@ -1,5 +1,6 @@
 import chess
 import Move
+import MoveHelper
 import HistoryFunctions
 class ChessAI:
     def initiatePlayer(self, boardPosition):
@@ -17,6 +18,12 @@ class ChessAI:
 
     def initiateComputer(self, boardPosition, lastMove, previousTree):
         moveRunner = Move.Move()
+        knownMove = HistoryFunctions.checkForKnownOpening(lastMove)
+        if knownMove is not None:
+            bestMove = boardPosition.parse_san(knownMove)
+            boardPosition.push(bestMove)
+            HistoryFunctions.writeMoveHistory(bestMove)
+            return boardPosition, bestMove, None
         bestMove, previousTree = moveRunner.getBestMove(boardPosition, lastMove, previousTree)
         print("Computer Move: ", bestMove)
         boardPosition.push(bestMove)

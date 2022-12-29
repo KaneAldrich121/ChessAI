@@ -68,10 +68,12 @@ def findAlphaBetaVal(boardPosition):
     blackTotal = findAllPieceTotal(boardPosition, chess.BLACK)
     difference = whiteTotal - blackTotal
 
-    # Find How Many Pieces this Move Attacks and How Many Squares (Don't use total squares for queen)
+    # Find How Many Pieces this Move Attacks
     lastMove = boardPosition.peek()
     numberAttackedSquares = boardPosition.attacks(lastMove.to_square)
     piecesAttacked = 0
+
+    # Pieces Attacked
     for square in numberAttackedSquares:
         if boardPosition.piece_at(square) and boardPosition.color_at(square) == boardPosition.turn:
             piecesAttacked += 1
@@ -79,23 +81,22 @@ def findAlphaBetaVal(boardPosition):
     if boardPosition.turn:
         piecesAttacked *= -1
 
+    # Position Calculation
     positionDifference = 0
-    # Find Position Turn 10 and Before
-    if boardPosition.fullmove_number < 10:
-        startSquare = lastMove.from_square
-        endSquare = lastMove.to_square
-        piece = boardPosition.piece_at(lastMove.to_square).piece_type
-        startVal = findPositionValue(startSquare, not boardPosition.turn, piece)
-        endVal = findPositionValue(endSquare, not boardPosition.turn, piece)
-        positionDifference = endVal - startVal
+    if boardPosition.fullmove_number <= 10:
+        positionDifference = findPositionValue(lastMove.to_square, not boardPosition.turn,
+                                        str(boardPosition.piece_at(lastMove.to_square)).lower())
+
+
 
     # AlphaBeta Function (Features = Difference, Pieces Attacked, Position (turn 10 and below), Mate)
-    Value = 2 * difference + 1.5 * piecesAttacked + 1.5 * positionDifference + mate
+    Value = (2 * difference) + (1.5 * piecesAttacked) + (1 * positionDifference) + mate
     return Value
 
 def findPositionValue(squareName, turn, piece):
-    pieceToTable = {1: PieceTables.pawnTable, 2: PieceTables.knightTable, 3: PieceTables.bishopTable,
-                    4: PieceTables.rookTable, 5: PieceTables.queenTable, 6: PieceTables.kingTable}
+    pieceToTable = {'p': PieceTables.pawnTable, 'n': PieceTables.knightTable, 'b': PieceTables.bishopTable,
+                    'r': PieceTables.rookTable, 'q': PieceTables.queenTable, 'k': PieceTables.kingTable,
+                    7: PieceTables.pawnTable}
     boardOffset = 1
     if turn:
         boardOffset = 0
@@ -333,8 +334,28 @@ def findTreeDepthMax(thisTree):
     return depth
 
 
+def printTree(thisTree):
+    level = 1
+    queue = []
+    for node in thisTree.children:
+        queue.append(node)
+    while len(queue) != 0:
+        print(f'Level: {level}')
+        thisLevelSize = len(queue)
+        for i in range(0, thisLevelSize):
+            thisNode = queue.pop(0)
+            print(thisNode)
+            for node in thisNode.children:
+                queue.append(node)
+        level += 1
+
+
+
 if __name__ == '__main__':
-    pass
+    board = chess.Board()
+    lastMove = board.parse_san('e2e4')
+    board.push(lastMove)
+    print(findAlphaBetaVal(board))
 
     # # Create Toy Tree
     # board = chess.Board("k3q3/5q2/8/8/8/8/8/5K2")
